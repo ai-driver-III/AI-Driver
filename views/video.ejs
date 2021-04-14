@@ -1,0 +1,109 @@
+
+<%-// include('layout.ejs') %>
+
+<div class='body'>
+    <h2>使用預錄影片做分析監控</h2>
+    <form id="uImgForm" action="/uMov/upload_file" method="post" enctype="multipart/form-data">
+        <input id="image-file" type="file" name="myfile" accept="video/*" data-target="file-uploader">
+    </form>
+    <button id='uMovBtn'>上傳檔案</button><div id="displayResponse"></div>
+    <div class="videDisplayDiv">
+        <table>
+            <tr>
+                <td>
+                    <div class="imgDisplay">
+                        <img src=<%= img %> alt="./images/logos.png" width="500px">
+                    </div>
+                </td>
+                <td>
+                    <div class="analysisResult">
+                            <table>
+                                <tr>
+                                    <th><p>item分類</p> </th>
+                                    <th><p>score評分</p> </th>
+                                    <th><p>risk風險</p> </th>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <p><b>Distraction</b></p>
+                                    </td>
+                                    <td id=distScore></td>
+                                    <td id=distRisk></td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <p>Concentration專注前方</p>
+                                    </td>
+                                    <td id=concScore></td>
+                                    <td id=concRisk></td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <p>Eye closure閉眼</p>
+                                    </td>
+                                    <td id=eyeClosureScore></td>
+                                    <td id=eyeClosureRisk></td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <p>blink眨眼</p>
+                                    </td>
+                                    <td id=blinkScore></td>
+                                    <td id=blinkRisk></td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <p>yawn打呵欠</p>
+                                    </td>
+                                    <td id=yawnScore></td>
+                                    <td id=yawnRisk></td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <p><b>Emotion</b></p>
+                                    </td>
+                                    <td id=emotionScore></td>
+                                    <td id=emotionRisk></td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <p>Angry生氣</p>
+                                    </td>
+                                    <td id=angryScore></td>
+                                    <td id=angryRisk></td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <p>Sad悲傷</p>
+                                    </td>
+                                    <td id=sadScore></td>
+                                    <td id=sadRisk></td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <p>Happy開心</p>
+                                    </td>
+                                    <td id=happyScore></td>
+                                    <td id=happyRisk></td>
+                                </tr>
+                                <!-- <tr>
+                                    <td><p>speed車速</p></td>
+                                    <td id=speed></td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td><p>distance前車距</p></td>
+                                    <td id=distance></td>
+                                    <td></td>
+                                </tr> -->
+                            </table>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <% dataS = JSON.stringify(data) %>
+    <% console.log("[LOG] Render video page") %>
+    <form action=""><input id="storeData" type="hidden" value="<%= dataS %>"></form>
+</div>
+<script type="module" src="./js/pageAction.js"></script>
