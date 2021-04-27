@@ -1,0 +1,19 @@
+Input:
+    const collection = client.db("outputData").collection("testData");
+        //choose what db and collection
+        var myobj = { "YOUR　JSON" };
+        // input intent
+        collection.insertOne(myobj, function (err, res) {
+            if (err) throw err;
+            console.log("input success!");
+            client.close();
+        });
+
+FindAll:
+    collection.find({}).toArray(function (err, result) {
+        if (err) throw err;
+        console.log(result);
+        client.close();
+    });
+
+more: https://www.w3schools.com/nodejs/nodejs_mongodb.asp

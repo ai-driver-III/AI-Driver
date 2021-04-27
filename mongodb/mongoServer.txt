@@ -1,0 +1,23 @@
+Setup:
+    organization: AIEN11_drivers
+    projects: AIEN_11_output
+    server provider: GCP, Taiwan Tier: M0
+    network access: 0.0.0.0 (all)
+    database access: 
+    |___user: dbUser;
+    |___password: aienfinal;
+
+Cluster0:
+    database
+    |___collection
+        |
+    admin
+        |___(empty)
+    local
+        |___...
+        |___...
+        |___...
+        |___...
+    outputData
+        |___originData
+        |___testData

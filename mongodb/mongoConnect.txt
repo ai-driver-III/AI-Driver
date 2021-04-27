@@ -1,0 +1,9 @@
+var MongoClient = require('mongodb').MongoClient;
+const uri = "mongodb+srv://dbUser:aienfinal@cluster0.glsjj.mongodb.net/myFirstDatabase?retryWrites=true&w=majority"
+// Connect to the db
+const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
+
+client.connect(err => {
+    console.log('mongodb is running!'); 
+        client.close();
+})
