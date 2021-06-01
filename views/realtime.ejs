@@ -1,88 +1,114 @@
-<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
+<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script> -->
+<script src="/js/webcam.min.js"></script>
+
 <div class='body'>
     <h2>使用即時鏡頭做分析監控</h2>
+    <form id="uImgForm" action="/upload_file" method="post" enctype="multipart/form-data">
+        <input id="image-file" type="file" value='選擇路況影片' name="myfile" accept="video/*" data-target="file-uploader">
+        <input type="hidden" value="realtime" name='page'>
+        <input type="submit" id='uMovBtn' value='上傳路況影片'></input>
+        <div id="displayResponse"></div>
+    </form>
+    <button id='video_strvideo'>播放影片</button>
+    <button id='video_stpvideo'>暫停影片</button><br>
     <button id='sCamBtn'>start camera</button>
+    <button id="okButton">Send Image</button>
     <div id="displayResponse"></div>
     <div class="videDisplayDiv">
         <table>
             <tr>
                 <td>
+                    <div class="imgDisplay">
+                        <!-- <video id='videoX' class="imgDisplay" src='./images/video/driver.mp4' controls='' ></video> -->
+                        <img id="displayCarView" width="320" src="" alt="">
+                        <div class="textClass displayHide" id="displayCarViewText" ></div>
+                        <video id="videoX" class="displayHide" loop muted src="./images/video/driver.mp4"></video>
+                    </div>
                     <div class="imgDisplay" id="imgDisplayDiv">
-                        <img id='realImg' src=<%= img %> alt="./images/logos.png" width="500px">
+                        <!-- <img id='realImg' src=<%= img %> alt="./images/logos.png" width="500px"> -->
+                        <img id='realImg' src=<%= img %> alt="./images/logos.png" width="360px">
+                        <div id='webcamDiv'>
+                        </div>
                     </div>
                 </td>
                 <td>
                     <div class="analysisResult">
-                            <table>
-                                <tr>
-                                    <th><p>item分類</p> </th>
-                                    <th><p>score評分</p> </th>
-                                    <th><p>risk風險</p> </th>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <p><b>Distraction</b></p>
-                                    </td>
-                                    <td id=distScore></td>
-                                    <td id=distRisk></td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <p>Concentration專注前方</p>
-                                    </td>
-                                    <td id=concScore></td>
-                                    <td id=concRisk></td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <p>Eye closure閉眼</p>
-                                    </td>
-                                    <td id=eyeClosureScore></td>
-                                    <td id=eyeClosureRisk></td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <p>blink眨眼</p>
-                                    </td>
-                                    <td id=blinkScore></td>
-                                    <td id=blinkRisk></td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <p>yawn打呵欠</p>
-                                    </td>
-                                    <td id=yawnScore></td>
-                                    <td id=yawnRisk></td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <p><b>Emotion</b></p>
-                                    </td>
-                                    <td id=emotionScore></td>
-                                    <td id=emotionRisk></td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <p>Angry生氣</p>
-                                    </td>
-                                    <td id=angryScore></td>
-                                    <td id=angryRisk></td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <p>Sad悲傷</p>
-                                    </td>
-                                    <td id=sadScore></td>
-                                    <td id=sadRisk></td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <p>Happy開心</p>
-                                    </td>
-                                    <td id=happyScore></td>
-                                    <td id=happyRisk></td>
-                                </tr>
-                                <!-- <tr>
+                        <table>
+                            <tr>
+                                <th>
+                                    <p>item分類</p>
+                                </th>
+                                <th>
+                                    <p>score評分</p>
+                                </th>
+                                <th>
+                                    <p>risk風險</p>
+                                </th>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <p><b>Distraction</b></p>
+                                </td>
+                                <td id=distScore></td>
+                                <td id=distRisk></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <p>Concentration專注前方</p>
+                                </td>
+                                <td id=concScore></td>
+                                <td id=concRisk></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <p>Eye closure閉眼</p>
+                                </td>
+                                <td id=eyeClosureScore></td>
+                                <td id=eyeClosureRisk></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <p>blink眨眼</p>
+                                </td>
+                                <td id=blinkScore></td>
+                                <td id=blinkRisk></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <p>yawn打呵欠</p>
+                                </td>
+                                <td id=yawnScore></td>
+                                <td id=yawnRisk></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <p><b>Emotion</b></p>
+                                </td>
+                                <td id=emotionScore></td>
+                                <td id=emotionRisk></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <p>Angry生氣</p>
+                                </td>
+                                <td id=angryScore></td>
+                                <td id=angryRisk></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <p>Sad悲傷</p>
+                                </td>
+                                <td id=sadScore></td>
+                                <td id=sadRisk></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <p>Happy開心</p>
+                                </td>
+                                <td id=happyScore></td>
+                                <td id=happyRisk></td>
+                            </tr>
+                            <!-- <tr>
                                     <td><p>speed車速</p></td>
                                     <td id=speed></td>
                                     <td></td>
@@ -92,16 +118,15 @@
                                     <td id=distance></td>
                                     <td></td>
                                 </tr> -->
-                            </table>
+                        </table>
                     </div>
                 </td>
             </tr>
         </table>
     </div>
-    
+
 </div>
 <% dataS = JSON.stringify(data) %>
 <% console.log("[LOG] Render realtime page") %>
 <form action=""><input id="storeData" type="hidden" value="<%= dataS %>"></form>
 <script type="module" src="./js/pageAction.js"></script>
-

@@ -3,16 +3,27 @@
 
 <div class='body'>
     <h2>使用預錄影片做分析監控</h2>
-    <form id="uImgForm" action="/uMov/upload_file" method="post" enctype="multipart/form-data">
-        <input id="image-file" type="file" name="myfile" accept="video/*" data-target="file-uploader">
+    <form id="uImgForm" action="/upload_file" method="post" enctype="multipart/form-data">
+        <input id="image-file" type="file" value = '選擇路況影片' name="myfile" accept="video/*" data-target="file-uploader">
+        <input type="hidden" value="video" name='page'>
+        <input type="submit" id='uMovBtn' value = '上傳路況影片'></input><div id="displayResponse"></div>
     </form>
-    <button id='uMovBtn'>上傳檔案</button><div id="displayResponse"></div>
+    <form id="uImgForm1" action="/upload_file1" method="post" enctype="multipart/form-data">
+        <input id="image-file1" type="file" value = '選擇臉部影片' name="myfile" accept="video/*" data-target="file-uploader">
+        <input type="hidden" value="video" name='page'>
+        <input type="submit" id='uMovBtn1' value = '上傳臉部影片'></input><div id="displayResponse1"></div>
+    </form>
+    <button id ='video_strvideo'>播放影片</button>
+    <button id ='video_stpvideo'>暫停影片</button>
     <div class="videDisplayDiv">
         <table>
             <tr>
                 <td>
                     <div class="imgDisplay">
-                        <img src=<%= img %> alt="./images/logos.png" width="500px">
+                        <video id='videoX' class="imgDisplay" src='./images/video/driver.mp4' controls='' ></video>
+                    </div>
+                    <div class="imgDisplay">
+                        <video id='videoY' class="imgDisplay" src='./images/video/face.mp4' controls='' ></video>
                     </div>
                 </td>
                 <td>
@@ -106,4 +117,5 @@
     <% console.log("[LOG] Render video page") %>
     <form action=""><input id="storeData" type="hidden" value="<%= dataS %>"></form>
 </div>
+
 <script type="module" src="./js/pageAction.js"></script>
