@@ -9,7 +9,7 @@ var multer = require('multer')
 var numRes;
 const child = spawn('python3', ['./python/opencv_in_img.py']);
 const driver_child = spawn('python3', ['./python/carView/nodeLandDetectByImg.py']);
-const face_child = spawn('python3', ['./python/opencv_in_img.py']);
+const face_child = spawn('python3', ['./python/CNNModle/nodeFatigueDetectByImg.py']);
 
 var tmpOutput = {
   returnCode: 200,
@@ -173,10 +173,13 @@ router.post('/video_face', function (req, res, next) {
   rl.on('line', data => {
     // console.log('out a image', typeof data); // string
 
+    var dataString = data.toString('base64');
+    var dataJson = JSON.parse(dataString);
+    dataJson['code'] = 200; // add code and time infomation.
     rl.close(); // make readline stop, this's very important step.
     rl.removeAllListeners(); // make readline stop, this's very important step.
     // res.send({result: `${numRes}`,imageString:imageString, time:[]});
-    res.send(data);
+    res.send(dataJson);
   });
   face_child.on('exit', (code) => {
     console.log(`Child process exited with code ${code}, num:${numRes}`);

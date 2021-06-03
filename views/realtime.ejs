@@ -1,8 +1,9 @@
 <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script> -->
-<script src="/js/webcam.min.js"></script>
+<!-- <script src="/js/webcam.min.js"></script> -->
+<script src="/js/webcamMobile.js"></script>
 
 <div class='body'>
-    <h2>使用即時鏡頭做分析監控</h2>
+    <h4>使用即時鏡頭做分析監控</h4>
     <form id="uImgForm" action="/upload_file" method="post" enctype="multipart/form-data">
         <input id="image-file" type="file" value='選擇路況影片' name="myfile" accept="video/*" data-target="file-uploader">
         <input type="hidden" value="realtime" name='page'>
@@ -20,18 +21,17 @@
                 <td>
                     <div class="imgDisplay">
                         <!-- <video id='videoX' class="imgDisplay" src='./images/video/driver.mp4' controls='' ></video> -->
-                        <img id="displayCarView" width="320" src="" alt="">
+                        <img id="displayCarView" width="320" src=<%= img %> alt="./images/logos.png">
                         <div class="textClass displayHide" id="displayCarViewText" ></div>
                         <video id="videoX" class="displayHide" loop muted src="./images/video/driver.mp4"></video>
                     </div>
                     <div class="imgDisplay" id="imgDisplayDiv">
                         <!-- <img id='realImg' src=<%= img %> alt="./images/logos.png" width="500px"> -->
-                        <img id='realImg' src=<%= img %> alt="./images/logos.png" width="360px">
-                        <div id='webcamDiv'>
+                        <div id='webcamDiv' >
                         </div>
                     </div>
                 </td>
-                <td>
+                <td class="tdTop">
                     <div class="analysisResult">
                         <table>
                             <tr>
@@ -47,12 +47,12 @@
                             </tr>
                             <tr>
                                 <td>
-                                    <p><b>Distraction</b></p>
+                                    <p><b>Fatigue</b></p>
                                 </td>
-                                <td id=distScore></td>
-                                <td id=distRisk></td>
+                                <td id=fatigueScore></td>
+                                <td id=fatigueRisk></td>
                             </tr>
-                            <tr>
+                            <!-- <tr>
                                 <td>
                                     <p>Concentration專注前方</p>
                                 </td>
@@ -107,17 +107,22 @@
                                 </td>
                                 <td id=happyScore></td>
                                 <td id=happyRisk></td>
+                            </tr> -->
+                            <tr>
+                                <td><p>speed車速</p></td>
+                                <td id=speedScore></td>
+                                <td id=speedRisk></td>
                             </tr>
-                            <!-- <tr>
-                                    <td><p>speed車速</p></td>
-                                    <td id=speed></td>
-                                    <td></td>
-                                </tr>
-                                <tr>
-                                    <td><p>distance前車距</p></td>
-                                    <td id=distance></td>
-                                    <td></td>
-                                </tr> -->
+                            <tr>
+                                <td><p>車道偏移</p></td>
+                                <td id=landScore></td>
+                                <td id=landRisk></td>
+                            </tr>
+                            <tr>
+                                <td><p>前車距</p></td>
+                                <td id=distanceScore></td>
+                                <td id=distanceRisk></td>
+                            </tr>
                         </table>
                     </div>
                 </td>
