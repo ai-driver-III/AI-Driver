@@ -1,4 +1,6 @@
 import RiskPlot from "./risk.js";
+var riskPlots = {fatigue: new RiskPlot(50, 100), speed: new RiskPlot(110,130),
+    land: new RiskPlot(60, 120), distance: new RiskPlot()}
 // *******realtime start********
 var storeNum = [];
 var num = 0;
@@ -83,12 +85,12 @@ function placeResultValue(dataObj) {
     keys.forEach(key => {
         var score = dataObj[key].score;
         var risk = dataObj[key].risk;
-        var tmpRiskPlot = new RiskPlot();
-        tmpRiskPlot.setBoard(score, risk);
+        // var tmpRiskPlot = new RiskPlot();
+        riskPlots[key].setBoard(score, risk);
         var tmpSEle = document.getElementById(key + 'Score');
         tmpSEle.innerText = score;
         var tmpREle = document.getElementById(key + 'Risk');
-        tmpREle.appendChild(tmpRiskPlot.board);
+        tmpREle.appendChild(riskPlots[key].board);
     });
 }
 function sCamBtnAction() {
@@ -196,7 +198,8 @@ function startCam() {
         width: 320,
         height: 240,
         image_format: 'jpeg',
-        jpeg_quality: 90
+        jpeg_quality: 90,
+        id: 'videoY'
     });
     Webcam.attach('#webcamDiv');
 }
@@ -248,7 +251,7 @@ function video_face(faceVideo, runNo) {
     var ratio = faceVideo.videoWidth / faceVideo.videoHeight; // original viedo width
     if (faceVideo.width == 0)
         faceVideo.width = faceVideo.videoWidth;
-    canvas.width = faceVideo.width;//carVideo video id='videoX'
+    canvas.width = grepVideoWidth*0.6;//carVideo video id='videoX'
     canvas.height = faceVideo.width / ratio;
     var ctx = canvas.getContext('2d');
     //draw image to canvas. scale to target dimensions
@@ -260,7 +263,10 @@ function video_face(faceVideo, runNo) {
     $.post("/video_face", data, function (receiveY) {
         if (playVideo)
             video_face(faceVideo, runNo + 1)
-
+        // console.log(receiveY.score)
+        var fatRisk = (receiveY.score<0.5)? 'low' : 'high';
+        var dataObj = {fatigue: {score: parseInt(receiveY.score*100), risk: fatRisk}};
+        placeResultValue(dataObj);
     });
 }
 function drawPolygon(thisCanvas, landPts, colorStr) {
@@ -323,6 +329,7 @@ function carViewSnap(runNo) {
     var snappedImage = getCarView(grepVideoWidth);
     var imageString = snappedImage.split(",")[1];
     var data = { num: runNo, time: beginTime, imageString: imageString };
+    // console.log("carview size: ", imageString.length)
     $.post("/video_driver", data, function (receive) {
         // if (playVideo){
         if (runNo > 30000)
@@ -338,14 +345,22 @@ function carViewSnap(runNo) {
         var pyToWebTime = new Date().getTime() - pyTime;
         var outStr = "";
         var landShift = receive.landShift;
-        var colorStr = (parseFloat(landShift) < 0.6) ? "0, 255, 0" : "255, 100, 100";
+        var colorStr = "255, 100, 100";
+        var landRisk = "high";
+        if (parseFloat(landShift) < 0.6) {
+            colorStr = "0, 255, 0"
+            landRisk = "low";
+        }
+        // var colorStr = (parseFloat(landShift) < 0.6) ? "0, 255, 0" : "255, 100, 100";
         var velocity = receive.velocity;
         outStr += `<p>landShift: ${landShift}</p>`;
         outStr += `<p>velocity: ${velocity}</p>`;
         outStr += "<p>Send" + receive.inputID + "</p><p>web to node time: " + webToNodeTime;
         outStr += `</p><p>node to py time: ${nodeToPyTime}</p>`;
         outStr += `<p>py to web time: ${pyToWebTime}</p>`;
-        displayCarViewText.innerHTML = outStr;
+        // displayCarViewText.innerHTML = outStr;
+        var dataObj = {speed: {score: velocity, risk: "low"}, land: {score: parseInt(landShift*100), risk:landRisk}};
+        placeResultValue(dataObj);
         var landPts = JSON.parse(receive.landPts);
         if (landPts.length > 0) {
             // console.log("landPts.length",landPts[0]);
