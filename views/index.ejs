@@ -1,15 +1,48 @@
-
-<!-- <%-// include('layout.ejs') %> -->
-<div class='body'>
-    <h4>資策會AI人工智慧應用開發班</h4>
-    <h5>專題：</h5>
-    <h2>駕駛行為偵測系統DMS(Driver Monitoring System)</h2>
-    <p>動機</p>
-    <p>分心、打瞌睡或是受傷的人類駕駛員，會成為殺死他們自己或其他用路人的兇手。
-        根據世界衛生組織(WHO)的統計數字，與人類駕駛員責任相關的交通意外死亡人數，每一年達到130萬。
-        疲勞駕駛難以認定，警察或科學儀器無法根據駕駛車輛軌跡判定，難靠外在執法，須自我約束並加強駕駛人意識。</p>
-    <p>許多汽車大廠新款車種已經有配備DMS系統，然而道路上車輛大多沒有配備，只能靠駕駛人自我約束，再多的後悔與賠償挽回不了破碎的家庭，而現今AI技術成熟，開發提醒瞌睡裝置設備有機會阻止這一切。</p>
-    <div>
-        <img src="/images/project_scope.png" alt="" srcset="" width="600">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>III AI Driver Monitor System</title>
+    <link rel="stylesheet" href="./stylesheets/styleLogin.css">
+    <script src="./js/jquery-3.4.1.js"></script>
+    <script src="./js/socket.io/4.0.1/socket.io.js"></script>
+    <script src="/js/webcamMobile.js"></script>
+</head>
+<body>
+    <div class="wrapper">
+        <div class="login">
+            <div>
+                <p class="title">駕駛行為偵測系統DMS</p>
+            </div>
+            <div class="tab">
+                <button class="tablinks active" id="signinTab">Log in</button>
+                <button class="tablinks" id="signupTab">Sign up</button>
+            </div>
+        <form id="signinForm">
+            <!-- <input type="text" placeholder="Username" autofocus/>
+            <i class="fa fa-user"></i>
+            <input type="password" placeholder="Password" />
+            <i class="fa fa-key"></i> -->
+            <div id='webcamDiv'></div>
+            <button class="bottom" id="faceLogin">
+                <i class="spinner"></i>
+                <span class="state">Face Log in</span>
+            </button>
+        </form>
+        <form class="tabcontent" id="signupForm">
+            <input type="text" placeholder="Username" autofocus/>
+            <i class="fa fa-user"></i>
+            <div id='webcamDiv'></div>
+            <button class="bottom" id="faceSignup">
+                <i class="spinner"></i>
+                <span class="state">Face Sign Up</span>
+            </button>
+        </form>
     </div>
-</div>
+    </div>
+    <%- include('partial/footer') %>
+    <script src="./js/loginScript.js"></script>
+</body>
+</html>

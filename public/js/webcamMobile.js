@@ -12,12 +12,14 @@ const Webcam = {
             navigator.mediaDevices.getUserMedia({ video: self.videoMode })
                 // navigator.mediaDevices.getUserMedia({ video: { facingMode: { exact: "environment" } }})
                 .then(function (stream) {
+                    self.attachNode = $(cssString)[0];
                     var video = self.videoEle;
                     video.setAttribute('autoplay', '');
                     video.setAttribute('muted', '');
                     video.setAttribute('playsinline', '');
                     video.style = `width: ${self.width}px; height: ${self.height}px;`;
                     video.srcObject = stream;
+                    $(cssString).html("");
                     $(cssString).append(video);
                     $(cssString).attr('width', `${self.width}`);
                 })
@@ -36,5 +38,14 @@ const Webcam = {
         //convert to desired file format
         var dataURI = canvas.toDataURL(`image/${self.image_format}`); // can also use 'image/png'
         callback(dataURI);
+    },
+    stopBothVideoAndAudio: function() {
+        stream = self.videoEle.srcObject
+        stream.getTracks().forEach(function(track) {
+            if (track.readyState == 'live') {
+                track.stop();
+            }
+        });
+        self.attachNode.innerHTML = "";
     }
 }

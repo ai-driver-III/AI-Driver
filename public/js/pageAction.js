@@ -1,6 +1,6 @@
 import RiskPlot from "./risk.js";
-var riskPlots = {fatigue: new RiskPlot(50, 100), speed: new RiskPlot(110,130),
-    land: new RiskPlot(60, 120), distance: new RiskPlot()}
+var riskPlots = {fatigue: new RiskPlot(50, 100), speed: new RiskPlot(120,140),
+    land: new RiskPlot(60, 120), distance: new RiskPlot(8, 100, true)}
 // *******realtime start********
 var storeNum = [];
 var num = 0;
@@ -324,6 +324,20 @@ function getCarView(sizeWidth) {
     // console.log("dataURI: ",dataURI); 
     return dataURI;
 }
+function drawLabels(thisCanvas, labels, boxes, distances) {
+    var ratioX = thisCanvas.width / VIDEO_DEFAULT_SIZE.width;
+    var ratioY = thisCanvas.height / VIDEO_DEFAULT_SIZE.height;
+    var ctx = thisCanvas.getContext('2d');
+    ctx.font = "12px Arial";
+    ctx.fillStyle = "black";
+    for (var i=0; i < labels.length; i++) {
+        // console.log("label:",labels[i], boxes[i][0]*ratioX, boxes[i][1]*ratioY)
+        if (distances[i]>0) {
+            ctx.fillText(labels[i], boxes[i][0]*ratioX, boxes[i][1]*ratioY);
+            ctx.fillText("D:"+distances[i], boxes[i][0]*ratioX, boxes[i][1]*ratioY+15);
+        }
+    }
+}
 function carViewSnap(runNo) {
     var beginTime = new Date().getTime();
     var snappedImage = getCarView(grepVideoWidth);
@@ -367,6 +381,17 @@ function carViewSnap(runNo) {
 
             drawPolygon(canvas, landPts, colorStr);
         }
+        var labels = receive.labels.replace(/'/g, '"')
+        var boxes = JSON.parse(receive.boxes);
+        labels = JSON.parse(labels);
+        var distances = JSON.parse(receive.distances);
+        if (labels.length > 0)
+            drawLabels(canvas, labels, boxes, distances);
+        distances = distances.filter(item => !(item < 0));
+        var minDist = Math.min.apply(Math,distances)
+        var distRisk = (minDist < 10)? "high" : "low";
+        dataObj = {distance: {score: minDist, risk: distRisk}};
+        placeResultValue(dataObj);
         var dataURI = canvas.toDataURL(`image/jpeg`);
         displayCarView.src = dataURI;
     });
