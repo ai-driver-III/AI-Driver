@@ -202,6 +202,8 @@ function startCam() {
         id: 'videoY'
     });
     Webcam.attach('#webcamDiv');
+    setTimeout(function(){ video_face(videoY, 0)},5000);
+   
 }
 
 // function getCarView(carVideo) {
@@ -246,6 +248,7 @@ function video_driver(carVideo, runNo) {
     });
 }
 function video_face(faceVideo, runNo) {
+    
     var canvas = document.createElement('canvas');
     // console.log('carVideo.width',carVideo.videoWidth,carVideo.videoHeight)
     var ratio = faceVideo.videoWidth / faceVideo.videoHeight; // original viedo width
@@ -261,6 +264,24 @@ function video_face(faceVideo, runNo) {
     dataURI = dataURI.split(",")[1];
     var data = { num: runNo, imageString: dataURI };
     $.post("/video_face", data, function (receiveY) {
+        var realTimeDriver_dataJson = receiveY.realTimeDriver_dataJson
+        // console.log('realTimeDriver_dataJson',realTimeDriver_dataJson)
+        realImg_driver.src = 'data:image/jpeg;base64,'+realTimeDriver_dataJson.image
+
+        var landRisk = "high";
+        if (parseFloat(realTimeDriver_dataJson.landShift) < 0.6) {
+            landRisk = "low";
+        }
+        var dataObj = {speed: {score: realTimeDriver_dataJson.velocity, risk: "low"}, land: {score: parseInt(realTimeDriver_dataJson.landShift*100), risk:landRisk}};
+        placeResultValue(dataObj);
+
+        var distances = JSON.parse(realTimeDriver_dataJson.distList);
+        distances = distances.filter(item => !(item < 0));
+        var minDist = Math.min.apply(Math,distances)
+        var distRisk = (minDist < 10)? "high" : "low";
+        dataObj = {distance: {score: minDist, risk: distRisk}};
+        placeResultValue(dataObj);
+
         if (playVideo)
             video_face(faceVideo, runNo + 1)
         // console.log(receiveY.score)

@@ -4,14 +4,14 @@
 
 <div class='body'>
     <h4>使用即時鏡頭做分析監控</h4>
-    <form id="uImgForm" action="/upload_file" method="post" enctype="multipart/form-data">
+    <!-- <form id="uImgForm" action="/upload_file" method="post" enctype="multipart/form-data">
         <input id="image-file" type="file" value='選擇路況影片' name="myfile" accept="video/*" data-target="file-uploader">
         <input type="hidden" value="realtime" name='page'>
         <input type="submit" id='uMovBtn' value='上傳路況影片'></input>
         <div id="displayResponse"></div>
-    </form>
-    <button id='video_strvideo'>播放影片</button>
-    <button id='video_stpvideo'>暫停影片</button><br>
+    </form> -->
+    <!-- <button id='video_strvideo'>播放影片</button>
+    <button id='video_stpvideo'>暫停影片</button><br> -->
     <button id='sCamBtn'>start camera</button>
     <button id="okButton">Send Image</button>
     <div id="displayResponse"></div>
@@ -21,12 +21,14 @@
                 <td>
                     <div class="imgDisplay">
                         <!-- <video id='videoX' class="imgDisplay" src='./images/video/driver.mp4' controls='' ></video> -->
-                        <img id="displayCarView" width="320" src=<%= img %> alt="./images/logos.png">
+                        <!-- <img id="displayCarView" width="320" src=<%= img %> alt="./images/logos.png">
                         <div class="textClass displayHide" id="displayCarViewText" ></div>
-                        <video id="videoX" class="displayHide" loop muted src="./images/video/driver.mp4"></video>
+                        <video id="videoX" class="displayHide" loop muted src="./images/video/driver.mp4"></video> -->
+                        <img id='realImg_driver' src=<%= img %> alt="./images/logos_driver.png" width="500px">
+                        <div id='drivercamDiv' >  
                     </div>
                     <div class="imgDisplay" id="imgDisplayDiv">
-                        <!-- <img id='realImg' src=<%= img %> alt="./images/logos.png" width="500px"> -->
+                        <img id='realImg' src=<%= img %> alt="./images/logos.png" width="500px">
                         <div id='webcamDiv' >
                         </div>
                     </div>

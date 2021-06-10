@@ -13,7 +13,7 @@ from yolo4tiny import Yoylv4Tiny
 # from carViewLib import runWithFPS
 # from carViewLib import landMark, traceMark
 # from carViewLib import CarView, landShift
-logging.basicConfig(level=logging.DEBUG)
+# logging.basicConfig(level=logging.DEBUG)
 # logging.basicConfig(level=logging.ERROR)
 
 def getCap():
@@ -30,7 +30,8 @@ def getCap():
     except IndexError:
         logging.debug("file open failed, try opening camera...")
         # print("file open failed, try opening camera...")
-        webcam = cv2.VideoCapture(1)
+        # webcam = cv2.VideoCapture(1)
+        webcam = cv2.VideoCapture("http://192.168.1.109:8000")
         # webcam.set(cv2.CAP_PROP_FRAME_WIDTH, 640.0)
         # webcam.set(cv2.CAP_PROP_FRAME_HEIGHT, 480.0)
         videoFrameTime = 1.0/30.0 ### temperally set to 1/30 sec
@@ -76,9 +77,9 @@ def main():
         velR = 0 if velR == None else velR
         landPts = landShiftObj.getUnwarpPts()
         ### transfer frame to base64 image string
-        # ret, jpeg = cv2.imencode('.jpg', frame)
-        # rJpeg = jpeg.tobytes()
-        # rJpeg = base64.b64encode(rJpeg).decode('utf-8')
+        ret, jpeg = cv2.imencode('.jpg', frame)
+        rJpeg = jpeg.tobytes()
+        rJpeg = base64.b64encode(rJpeg).decode('utf-8')
         ### prepare feedback data
         outMsg = f'"inputID":{num}, "landShift": "{shiftVel:.1f}", "velocity": "{(velL+velR)/2:.1f}"'
         outMsg += f', "landPts":"{landPts}"'
@@ -90,13 +91,13 @@ def main():
         outMsg = "{"+outMsg+"}"
         print(outMsg)
         ### debug mode
-        # debug = carView.processObjPos(acm, warpPoints)
-        # debugFrame = cv2.vconcat([debugFrame,debug])
-        # num+=1
-        # k = cv2.waitKey(1)
-        # if k == 27 or k == ord('q'):
-        #     break
-        # cv2.imshow("debug", debugFrame)
+        debug = carView.processObjPos(acm, warpPoints)
+        debugFrame = cv2.vconcat([debugFrame,debug])
+        num+=1
+        k = cv2.waitKey(1)
+        if k == 27 or k == ord('q'):
+            break
+        cv2.imshow("debug", debugFrame)
         # if int(num) >50:
         #     break
         # cv2.imwrite(f"./carView/saveImg/debug{num}.jpg", debugFrame)
