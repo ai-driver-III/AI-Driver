@@ -3,13 +3,17 @@ const HIGH_RISK_COLOR = ['red', 'pink'];
 const LOW_RISK_COLOR = ['green', 'lightgreen'];
 const RISK_TOLERANCE = 60;
 class RiskPlot  {
-    constructor(tol, max) {
+    constructor(tol, max, reverse) {
         this.board = document.createElement('div');
         // this.boardOut = document.createElement('div');
         this.canvas = document.createElement('canvas');
         this.boardText = document.createElement('p');
         this.timeSlice = 0;
         this.RISK_TOLERANCE = RISK_TOLERANCE;
+        this.reverse = false;
+        if (reverse!=undefined) {
+            this.reverse = reverse;
+        }
         if (tol!=undefined) 
             this.RISK_TOLERANCE = tol;
         this.MAX = 100;
@@ -18,6 +22,10 @@ class RiskPlot  {
     }
     setBoard(inScore,text , reSize=50) {
         var outColor, inColor;
+        if (this.reverse) {
+            inScore = this.MAX - inScore;
+            this.RISK_TOLERANCE = this.MAX - this.RISK_TOLERANCE;
+        }
         if (parseInt(inScore) >= this.RISK_TOLERANCE) {
             outColor = HIGH_RISK_COLOR[1];
             inColor = HIGH_RISK_COLOR[0];

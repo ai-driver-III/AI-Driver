@@ -2,11 +2,12 @@ from .traceMark import landMark, traceMark
 import cv2
 import numpy as np
 import pandas as pd
-import sys, time, logging
+import sys, time, logging, math
 
 # logging.basicConfig(level=logging.ERROR)
 
 class CarView():
+    DISTANCE_FACTOR = 100
     def __init__(self):
         polyshape1 = [ [350, 150], [-100, 300], 
             [1000, 300], [450, 150]] ### for carView0#.mp4
@@ -14,10 +15,19 @@ class CarView():
             [1026, 450], [492, 280]] ### for outsize3.mp4  #852/2=426
         polyshape3 = [ [210, 230], [-100, 460],
             [900, 460], [590, 230]] ### for car_detect#.mp4
+        polyshape4 = [ [360, 250], [-284, 400],  #-30
+            [1106, 400], [462, 250]] ### for outsize4.mp4 & testDistance.mp4 #852/2=426
+        polyshape5 = [ [360, 310], [-174, 480],
+            [1026, 480], [492, 310]] ### for outsize2.mp4 #852/2=426
+        polyshape6 = [ [410, 280], [-174, 480],
+            [1026, 480], [522, 280]] ### for testDistance2.mp4 #852/2=426
+        polyshape7 = [ [426-30, 190], [426-526, 460],
+            [426+526, 460], [426+50, 190]] ### for testDistance3.mp4 #852/2=426
         white_hsv_low1  = np.array([  18,  0,   210])
         white_hsv_low2  = np.array([  10,  0,   130])
-        self.landShape = polyshape2
-        self.white_hsv_low_now = white_hsv_low2
+        white_hsv_low3  = np.array([  10,  0,   170]) ### for testDistance3.mp4 #852/2=426 
+        self.landShape = polyshape7
+        self.white_hsv_low_now = white_hsv_low3
         self.birdViewShape = [ [0, 0], [0, 480], [400, 480], [400, 0]	]
 
     def getBirdEyeView(self, frame, plotFlag = False):
@@ -71,6 +81,12 @@ class CarView():
         if plotFlag:
             cv2.imwrite(f"./saveImg/bV_mls{1}.jpg", result_img)
         return result_img
+    # def applyCustomMask(self, frame):
+    #     land_low = np.array([0, 0, 136])
+    #     land_high = np.array([180, 255, 255])
+    #     white_low = np.array([0, 0, 0])
+    #     white_high = np.array([180, 255, 173])
+
     def applyAveMask(self, frame):
         frame = cv2.GaussianBlur(frame, (9, 9), 0) # 數字愈大愈模糊 去雜訊用
         hsv = cv2.cvtColor(frame,cv2.COLOR_BGR2HSV)
@@ -206,7 +222,8 @@ class CarView():
                 maxLocation.append(int(idx[0][0]))
             else :
                 idx = np.where(row == tmpMax)
-                maxLocation.append(int(idx[0][0]+offsetX))
+                # maxLocation.append(int(idx[0][0]+offsetX))
+                maxLocation.append(int(idx[-1][-1]+offsetX))
         return maxLocation
     def calPolyfitX(self, array1D):
         xArray = np.array(range(len(array1D)))
@@ -239,7 +256,7 @@ class CarView():
         else:
             fitLocationR = None
         return fitLocationL, fitLocationR
-    def drawFitLand(self, frame, fitLocationL, fitLocationR, lengthWidth = 3):
+    def drawFitLand(self, frame, fitLocationL, fitLocationR, lengthWidth = 3, debugMode=False):
         frame = np.float32(frame)
         color = (0,0,255) ###BGR
         centerColor = (0,100,0)
@@ -267,7 +284,12 @@ class CarView():
             RPts.reverse()
             newPts.extend(RPts)
             newPts = np.array(newPts, dtype = np.int32)
-            cv2.fillPoly(frame, [newPts], centerColor)
+            if debugMode:
+                area = cv2.contourArea(newPts)
+                logging.debug("Area: "+str(area))
+                # print("Area: "+str(cv2.contourArea(newPts)))
+                if area>33000 and area< 38000:
+                    cv2.fillPoly(frame, [newPts], centerColor)
         return frame, newPts
     def landDetect(self, frame, plotFlag = False, fps=1/30, traceMarkL=None, traceMarkR=None, landShift = None):
         df = pd.DataFrame(frame)
@@ -285,23 +307,42 @@ class CarView():
         elif method == "weighted":
             frame = cv2.addWeighted(frame, 1, unwarp, 0.4, 0)
         return frame
-    def unwarpPts(self, newPts):
-        # self.landShape = [ [360, 280], [-400, 430],
+    def unwarpPts(self, newPts, reverse=False):
+        if not reverse:
+            rect = np.array(self.landShape, dtype = "float32")
+            dst = np.array(self.birdViewShape, dtype = "float32")
+            resizeY=480/200
+            returnPts = []
+            for point in newPts:
+                YdRatio = ( point[1]*resizeY - dst[0][1] ) / (dst[1][1] - dst[0][1])
+                Yt =  YdRatio * (rect[1][1] - rect[0][1]) + rect[0][1]
+                XdRatio = ( point[0] - dst[0][0] ) / (dst[2][0] - dst[0][0])
+                XtRange = (rect[2][0] - rect[1][0] - rect[3][0] + rect[0][0])
+                tSlope = (rect[1][0] - rect[0][0]) / (rect[1][1] - rect[0][1])
+                Xt = XdRatio * (YdRatio*XtRange + rect[3][0] - rect[0][0]) + (Yt-rect[0][1]) * tSlope + rect[0][0]
+                returnPts.append([int(Xt), int(Yt)])
+        # self.landShape = [ [360, 280], [-400, 430],   
         #     [1000, 430], [480, 280]]
         # self.birdViewShape = [ [0, 0], [0, 480], [400, 480], [400, 0]	]
-        rect = np.array(self.landShape, dtype = "float32")
-        # map the screen to a top-down, "birds eye" view
-        dst = np.array(self.birdViewShape, dtype = "float32")
-        returnPts = []
-        for point in newPts:
-            resizeY=480/200
-            YdRatio = ( point[1]*resizeY - dst[0][1] ) / (dst[1][1] - dst[0][1])
-            Yt =  YdRatio * (rect[1][1] - rect[0][1]) + rect[0][1]
-            XdRatio = ( point[0] - dst[0][0] ) / (dst[2][0] - dst[0][0])
-            XtRange = (rect[2][0] - rect[1][0] - rect[3][0] + rect[0][0])
-            tSlope = (rect[1][0] - rect[0][0]) / (rect[1][1] - rect[0][1])
-            Xt = XdRatio * (YdRatio*XtRange + rect[3][0] - rect[0][0]) + (Yt-rect[0][1]) * tSlope + rect[0][0]
-            returnPts.append([int(Xt), int(Yt)])
+        else:
+            dst = np.array(self.landShape, dtype = "float32")
+            rect = np.array(self.birdViewShape, dtype = "float32")
+            resizeY=1
+            returnPts = []
+            for point in newPts:
+                ### y linear methon
+                YdRatioLinear = ( point[1]*resizeY - dst[0][1] ) / (dst[1][1] - dst[0][1])
+                ### y exponential method
+                base = 2
+                startY = point[1]*resizeY - dst[0][1] ## prevent error
+                startY = 0 if startY < 0 else startY ## prevent error
+                YdRatio = math.log(startY+1, base) / math.log(dst[1][1] - dst[0][1]+1, base)
+                ###
+                Yt =  YdRatio * (rect[1][1] - rect[0][1]) + rect[0][1]
+                Xoffset = (dst[1][0]-dst[0][0])*YdRatioLinear + dst[0][0]
+                Xratio = (dst[2][0]-dst[1][0]-dst[3][0]+dst[0][0])*YdRatioLinear + (dst[3][0]-dst[0][0])
+                Xt = (point[0]- Xoffset) * (rect[2][0]-rect[0][0]) / Xratio
+                returnPts.append([int(Xt), int(Yt)])
         ### plot for debug ###
         # import matplotlib.pyplot as plt
         # plt.plot(newPts[:,0],newPts[:,1])
@@ -310,6 +351,41 @@ class CarView():
         # plt.savefig("./saveImg/land.png")
         # plt.clf()
         return returnPts
+    def filterOutsidePts(self, points):
+        leftLimit = 100
+        rightLimit = 300
+        topLimit = 0
+        newPts = []
+        for point in points:
+            if point[0]>leftLimit and point[0] < rightLimit and point[1]>topLimit:
+                newPts.append(point)
+            else:
+                newPts.append([])
+        return newPts
+    def getObjDistance(self, points):
+        distList = []
+        maxPixelY = self.birdViewShape[1][1]
+        warpPoints = self.unwarpPts(points, reverse=True)
+        warpPoints = self.filterOutsidePts(warpPoints)
+        for point in warpPoints:
+            # logging.debug(points,warpPoints)
+            if len(point)>0:
+                dist = int((maxPixelY-point[1]) * self.DISTANCE_FACTOR / maxPixelY)
+                distList.append(dist)
+            else:
+                distList.append(-1)
+            # distList.append(point[1]) ### for debug
+        return distList, warpPoints
+    def processObjPos(self, acm, warpPoints):
+        debug = cv2.cvtColor(acm ,cv2.COLOR_GRAY2BGR)
+        debug = cv2.resize(debug, (400, 480), interpolation=cv2.INTER_AREA)
+        if warpPoints != None:
+            for point in warpPoints:
+                if len(point)>0:
+                    # print("object:",point[0],point[1])
+                    cv2.circle(debug, (point[0],point[1]),5,(255,0,0),-1)
+        debug = cv2.resize(debug, (400, 200), interpolation=cv2.INTER_AREA)
+        return debug
     def process(self, frame, traceMarkL, traceMarkR, landShift, fps, debugMode=False):
         warp = self.getBirdEyeView(frame)
         # warp = modify_lightness_saturation(warp) ### not work
@@ -318,7 +394,7 @@ class CarView():
         fitLocationL, fitLocationR = self.landDetect(acm, 
             traceMarkL=traceMarkL, traceMarkR=traceMarkR, landShift=landShift, fps = fps)
         zeroWrap = np.zeros((warp.shape[0], warp.shape[1], 3))
-        warpWLand, landPts = self.drawFitLand(zeroWrap, fitLocationL, fitLocationR)
+        warpWLand, landPts = self.drawFitLand(zeroWrap, fitLocationL, fitLocationR, debugMode)
         # logging.debug("landPts",landPts)
         unwarpLandPts = self.unwarpPts(landPts)
         # logging.debug("unwarpLandPts",unwarpLandPts)
@@ -328,7 +404,6 @@ class CarView():
             unwarp = self.upwarpView(warpWLand)
             frame = self.combineUnwarp(frame, unwarp)
             maskAuto = self.applyAveMask(warp)
-            debug = cv2.cvtColor(acm ,cv2.COLOR_GRAY2BGR)
             maskAuto = cv2.cvtColor(maskAuto,cv2.COLOR_GRAY2BGR)
             # debug = np.float32(debug)
             warp = np.uint8(warp)
@@ -339,6 +414,6 @@ class CarView():
             # print("warp ", warp.shape, warp.dtype)
             # print("maskAuto ", maskAuto.shape, maskAuto.dtype)
             # debugFrame = warp
-            debugFrame = cv2.vconcat([frame,warp,debug])
-            return debugFrame
-        return 0
+            debugFrame = cv2.vconcat([frame,warp])
+            return debugFrame, acm
+        return 0,0

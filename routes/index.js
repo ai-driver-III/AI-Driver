@@ -31,6 +31,9 @@ tmpOutput = JSON.stringify(tmpOutput)
 router.get('/', function (req, res, next) {
   res.render('layout', { ejsPage: 'index.ejs', data: '{}' });
 });
+// router.get('/', function (req, res, next) {
+//   res.render('index');
+// });
 router.get('/realtime', function (req, res, next) {
 
   res.render('layout', { ejsPage: 'realtime.ejs', data: tmpOutput });
@@ -151,6 +154,8 @@ router.post('/video_driver', function (req, res, next) {
     // res.send({result: `${numRes}`,imageString:imageString, time:[]});
     res.send(dataJson);
   });
+  driver_child.removeAllListeners('exit');
+  driver_child.stderr.removeAllListeners('data');
   driver_child.on('exit', (code) => {
     console.log(`Child process exited with code ${code}, num:${numRes}`);
   });
@@ -181,6 +186,8 @@ router.post('/video_face', function (req, res, next) {
     // res.send({result: `${numRes}`,imageString:imageString, time:[]});
     res.send(dataJson);
   });
+  face_child.removeAllListeners('exit');
+  face_child.stderr.removeAllListeners('data');
   face_child.on('exit', (code) => {
     console.log(`Child process exited with code ${code}, num:${numRes}`);
   });

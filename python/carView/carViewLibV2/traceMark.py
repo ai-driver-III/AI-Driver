@@ -20,10 +20,16 @@ class landMark():
         except:
             rX, rY = None, None
         return rX, rY
+    def isVaildMark(self):
+        if len(self.frameTimeList)>=5:
+            return True
+        else:
+            return False
     def getVelocity(self):
         ### call this function when mark left view
         # DISTANCE_FACTOR = 80.0 ### carView04.mp4
-        DISTANCE_FACTOR = 30.0 ### outside3.mp4
+        # DISTANCE_FACTOR = 30.0 ### outside3.mp4
+        DISTANCE_FACTOR = 60.0 ### testDistance3.mp4
         totalT = sum(self.frameTimeList)
         velcity = DISTANCE_FACTOR / totalT
         return velcity
@@ -52,8 +58,8 @@ class traceMark():
         self.markIdList.append(self.count)
         self.count += 1
     def getMedVelocity(self):
-        if len(self.velocityList)>15:
-            self.velocityList = self.velocityList[-15:]
+        if len(self.velocityList)>5:
+            self.velocityList = self.velocityList[-5:]
             vStd = statistics.stdev(self.velocityList)
             mean = statistics.mean(self.velocityList)
             self.velocityList = [v for v in self.velocityList if v > mean-(4*vStd) and v < mean+(4*vStd)]
@@ -65,7 +71,8 @@ class traceMark():
             return 0
     def processMark(self, maxLocation, fps = 1.0/30.0):
         DISTANCE_MARK = 20
-        array1D = maxLocation[int(len(maxLocation)/2):] ### take only bottom half
+        # array1D = maxLocation[int(len(maxLocation)/2):] ### take only bottom half
+        array1D = maxLocation[int(len(maxLocation)/2)-50:-50] ### take only bottom half
         xArray = np.array(range(len(array1D)))
         zeroIdx = [i for i in range(len(array1D)) if array1D[i] == 0]
         yArrayTrim = [array1D[i] for i in range(len(array1D)) if i not in zeroIdx]
@@ -94,13 +101,15 @@ class traceMark():
             logging.debug((f"marklsit len: {len(self.markList)}, markpos: {mark.markPosYList}, {mark.frameTimeList}"))
             if mark.isInPosList(markPosYList, ft) :
                 newList.append(mark)
-            else:
+            elif mark.isVaildMark():
                 vel = mark.getVelocity()
                 if vel <200:
                     self.velocityList.append(vel)
                     vel = self.getMedVelocity()
                     logging.debug((f"velocity: {vel:.1f}, len: {len(self.velocityList)}"))
                     # print(f"velocity: {vel:.1f}")
+            else:
+                logging.debug("Invalid mark.")
         self.markList = newList
         for posY in markPosYList:
             # print("Mark added")

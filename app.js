@@ -19,6 +19,17 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+var bodyParser = require('body-parser');
+require('body-parser-xml')(bodyParser);
+app.use(bodyParser.xml({
+  limit: '10MB', // Reject payload bigger than 10 MB 
+  xmlParseOptions: {
+      normalize: true, // Trim whitespace inside text nodes 
+      normalizeTags: false, // Transform tags to lowercase 
+      explicitArray: false // Only put nodes in array if >1 
+  }
+}));
+
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 
