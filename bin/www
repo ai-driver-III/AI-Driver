@@ -8,6 +8,19 @@ var app = require('../app');
 var debug = require('debug')('ai-driver:server');
 var http = require('http');
 
+// adding https server
+const fs = require("fs");
+const https = require("https");
+var hskey = fs.readFileSync('pillaAuth-key.pem', 'utf8');
+var hscert = fs.readFileSync('pillaAuth-cert.pem', 'utf8');
+var credentials = {
+    key: hskey,
+    cert: hscert
+}
+const servers = https.createServer(credentials, app);
+servers.listen(3000);
+servers.on('error', onError);
+servers.on('listening', onListening);
 /**
  * Get port from environment and store in Express.
  */
