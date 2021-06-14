@@ -7,7 +7,7 @@ import sys, time, logging, math
 # logging.basicConfig(level=logging.ERROR)
 
 class CarView():
-    DISTANCE_FACTOR = 100
+    DISTANCE_FACTOR = 50
     def __init__(self):
         polyshape1 = [ [350, 150], [-100, 300], 
             [1000, 300], [450, 150]] ### for carView0#.mp4
@@ -23,15 +23,18 @@ class CarView():
             [1026, 480], [522, 280]] ### for testDistance2.mp4 #852/2=426
         polyshape7 = [ [426-30, 190], [426-526, 460],
             [426+526, 460], [426+50, 190]] ### for testDistance3.mp4 #852/2=426
+        polyshape8 = [ [426-100, 190], [426-726, 480],
+            [426+726, 480], [426+120, 190]] ### for realCarView2.mov #852/2=426
         white_hsv_low1  = np.array([  18,  0,   210])
         white_hsv_low2  = np.array([  10,  0,   130])
         white_hsv_low3  = np.array([  10,  0,   170]) ### for testDistance3.mp4 #852/2=426 
-        self.landShape = polyshape7
-        self.white_hsv_low_now = white_hsv_low3
+        white_hsv_low4  = np.array([  10,  0,   240]) ### for realCarView_01.mp4 #852/2=426 
+        self.landShape = polyshape8
+        self.white_hsv_low_now = white_hsv_low4
         self.birdViewShape = [ [0, 0], [0, 480], [400, 480], [400, 0]	]
 
     def getBirdEyeView(self, frame, plotFlag = False):
-        # cv2.imwrite(f"./saveImg/orgView{1}.jpg", frame)
+        # # cv2.imwrite(f"./saveImg/orgView{1}.jpg", frame)
         # print("frame size:", frame.shape) ## 852,480
         # rect = np.array(polyshape1, dtype = "float32")
         self.height = frame.shape[0]
@@ -288,13 +291,17 @@ class CarView():
                 area = cv2.contourArea(newPts)
                 logging.debug("Area: "+str(area))
                 # print("Area: "+str(cv2.contourArea(newPts)))
-                if area>33000 and area< 38000:
+                # cv2.fillPoly(frame, [newPts], centerColor)
+                # if area>33000 and area< 38000:
+                if area>35000 and area< 43000:
                     cv2.fillPoly(frame, [newPts], centerColor)
         return frame, newPts
     def landDetect(self, frame, plotFlag = False, fps=1/30, traceMarkL=None, traceMarkR=None, landShift = None):
         df = pd.DataFrame(frame)
         colmean = (df.mean(axis=0)) / df.shape[1]
         leftX, rightX = self.firstLandDetect(colmean, landShift)
+        # logging.debug("first land detect:"+str(leftX))
+        # logging.debug("first land detect:"+str(rightX))
         return self.secondLandDetect(frame, leftX, rightX, traceMarkL=traceMarkL, traceMarkR=traceMarkR, fps=fps)
     def combineUnwarp(self, frame, unwarp, method="weighted"):
         unwarp = unwarp.astype(np.uint8)  ### very important step
@@ -394,7 +401,7 @@ class CarView():
         fitLocationL, fitLocationR = self.landDetect(acm, 
             traceMarkL=traceMarkL, traceMarkR=traceMarkR, landShift=landShift, fps = fps)
         zeroWrap = np.zeros((warp.shape[0], warp.shape[1], 3))
-        warpWLand, landPts = self.drawFitLand(zeroWrap, fitLocationL, fitLocationR, debugMode)
+        warpWLand, landPts = self.drawFitLand(zeroWrap, fitLocationL, fitLocationR, debugMode=debugMode)
         # logging.debug("landPts",landPts)
         unwarpLandPts = self.unwarpPts(landPts)
         # logging.debug("unwarpLandPts",unwarpLandPts)

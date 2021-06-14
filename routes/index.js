@@ -7,8 +7,8 @@ var multer = require('multer')
 
 // var num = 0;
 var numRes;
-const child = spawn('python3', ['./python/opencv_in_img.py']);
-const driver_child = spawn('python3', ['./python/carView/nodeLandDetectByImg.py']);
+// const child = spawn('python3', ['./python/opencv_in_img.py']);
+// const driver_child = spawn('python3', ['./python/carView/nodeLandDetectByImg.py']);
 const face_child = spawn('python3', ['./python/CNNModle/nodeFatigueDetectByImg.py']);
 const realTimeDriver_child = spawn('python3', ['./python/carView/nodeLandDetectByCap.py']);
 realTime_driver();
@@ -26,53 +26,65 @@ var tmpOutput = {
     angry: { score: 25, risk: 'Low' },
     sad: { score: 0, risk: 'Low' },
     happy: { score: 0, risk: 'Low' }
-  }
+  },
+  token: -1
 }
-tmpOutput = JSON.stringify(tmpOutput)
+tmpOutput = JSON.stringify(tmpOutput);
 /* GET home page. */
-router.get('/', function (req, res, next) {
-  res.render('layout', { ejsPage: 'index.ejs', data: '{}' });
-});
 // router.get('/', function (req, res, next) {
-//   res.render('index');
+//   res.render('layout', { ejsPage: 'index.ejs', data: '{}' });
 // });
+router.get('/', function (req, res, next) {
+  res.render('index');
+});
 router.get('/realtime', function (req, res, next) {
-
-  res.render('layout', { ejsPage: 'realtime.ejs', data: tmpOutput });
+  // tmpOutput = JSON.parse(tmpOutput);
+  // tmpOutput.token = req.query.token;
+  // console.log("token: ", tmpOutput.token);
+  // var app = req.app;
+  // var userList = app.get("userList");
+  // console.log("token: ", tmpOutput.token, userList[tmpOutput.token]);
+  // if (userList[tmpOutput.token]==undefined) {
+  //   tmpOutput = JSON.stringify(tmpOutput);
+  //   res.redirect("./");
+  // } else {
+  //   tmpOutput = JSON.stringify(tmpOutput);
+    res.render('layout', { ejsPage: 'realtime.ejs', data: tmpOutput });
+  // }
 });
 router.get('/video', function (req, res, next) {
   res.render('layout', { ejsPage: 'video.ejs', data: tmpOutput });
 });
-router.post('/realtime', function (req, res, next) {
-  var imageString = req.body.imageString;
-  // const child = spawn('python3', ['./python/opencv_in_img.py']); // move to outside post
-  num = req.body.num
-  child.stdin.write(num + "," + imageString + "\n");
-  // child.stdin.end(); // This will only work once.
+// router.post('/realtime', function (req, res, next) {
+//   var imageString = req.body.imageString;
+//   // const child = spawn('python3', ['./python/opencv_in_img.py']); // move to outside post
+//   num = req.body.num
+//   child.stdin.write(num + "," + imageString + "\n");
+//   // child.stdin.end(); // This will only work once.
 
-  num += 1;
-  const rl = readline.createInterface({ input: child.stdout });
-  rl.on('line', data => {
-    // console.log('out a image', typeof data); // string
-    var imageString = data.toString('base64');
-    var splitL = imageString.split(",");
-    numRes = splitL[0]
-    imageString = splitL[1]
-    pythonTime = new Date().getTime();
-    // res.send({imageString:imageString});
-    console.log("[POST] OUT");
-    rl.close(); // make readline stop, this's very important step.
-    rl.removeAllListeners(); // make readline stop, this's very important step.
-    res.send({ result: `${numRes}`, imageString: imageString, time: [] });
-  });
-  child.on('exit', (code) => {
-    console.log(`Child process exited with code ${code}, num:${numRes}`);
-  });
-  child.stderr.on('data', (data) => {
-    console.log(`stderr: ${data}`);
-  });
+//   num += 1;
+//   const rl = readline.createInterface({ input: child.stdout });
+//   rl.on('line', data => {
+//     // console.log('out a image', typeof data); // string
+//     var imageString = data.toString('base64');
+//     var splitL = imageString.split(",");
+//     numRes = splitL[0]
+//     imageString = splitL[1]
+//     pythonTime = new Date().getTime();
+//     // res.send({imageString:imageString});
+//     console.log("[POST] OUT");
+//     rl.close(); // make readline stop, this's very important step.
+//     rl.removeAllListeners(); // make readline stop, this's very important step.
+//     res.send({ result: `${numRes}`, imageString: imageString, time: [] });
+//   });
+//   child.on('exit', (code) => {
+//     console.log(`Child process exited with code ${code}, num:${numRes}`);
+//   });
+//   child.stderr.on('data', (data) => {
+//     console.log(`stderr: ${data}`);
+//   });
 
-});
+// });
 
 var myStorage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -159,7 +171,7 @@ router.post('/video_driver', function (req, res, next) {
   driver_child.removeAllListeners('exit');
   driver_child.stderr.removeAllListeners('data');
   driver_child.on('exit', (code) => {
-    console.log(`Child process exited with code ${code}, num:${numRes}`);
+    console.log(`driver_child Child process exited with code ${code}, num:${numRes}`);
   });
   driver_child.stderr.on('data', (data) => {
     console.log(`stderr: ${data}`);
@@ -168,7 +180,7 @@ router.post('/video_driver', function (req, res, next) {
 });
 router.post('/video_face', function (req, res, next) {
   var imageString = req.body.imageString;
-  console.log('imageString',imageString.slice(0,10))
+  // console.log('imageString',imageString.slice(0,10))
   // const child = spawn('python3', ['./python/opencv_in_img.py']); // move to outside post
   num = req.body.num
   console.log('face_child num', num)
@@ -181,8 +193,14 @@ router.post('/video_face', function (req, res, next) {
     // console.log('out a image', typeof data); // string
 
     var dataString = data.toString('base64');
-    var dataJson = JSON.parse(dataString);
-    dataJson['code'] = 200; // add code and time infomation.
+    try {
+      var dataJson = JSON.parse(dataString);
+      dataJson['code'] = 200; // add code and time infomation.
+    }
+    catch (error){
+      var dataJson = {"inputID":0,"score":0};
+      dataJson['code'] = 1; // add code and time infomation.
+    }
     rl.close(); // make readline stop, this's very important step.
     rl.removeAllListeners(); // make readline stop, this's very important step.
     // res.send({result: `${numRes}`,imageString:imageString, time:[]});
@@ -193,7 +211,7 @@ router.post('/video_face', function (req, res, next) {
   face_child.removeAllListeners('exit');
   face_child.stderr.removeAllListeners('data');
   face_child.on('exit', (code) => {
-    console.log(`Child process exited with code ${code}, num:${numRes}`);
+    console.log(`face_child Child process exited with code ${code}, num:${numRes}`);
   });
   face_child.stderr.on('data', (data) => {
     console.log(`stderr: ${data}`);
@@ -235,7 +253,7 @@ var realTimeDriver_dataJson = {}
   realTimeDriver_child.removeAllListeners('exit');
   realTimeDriver_child.stderr.removeAllListeners('data');
   realTimeDriver_child.on('exit', (code) => {
-    console.log(`Child process exited with code ${code}, num:${numRes}`);
+    console.log(`realTimeDriver Child process exited with code ${code}, num:${numRes}`);
   });
   realTimeDriver_child.stderr.on('data', (data) => {
     console.log(`stderr: ${data}`);

@@ -1,6 +1,14 @@
 import RiskPlot from "./risk.js";
-var riskPlots = {fatigue: new RiskPlot(50, 100), speed: new RiskPlot(120,140),
-    land: new RiskPlot(60, 120), distance: new RiskPlot(8, 100, true)}
+import TimeControl from "./timeCtrl.js";
+import AudioPlay from "./audioPlay.js";
+// ******** RiskPlot( threshold , maxValue) *********
+var riskPlots = {fatigue: new RiskPlot(50, 100), speed: new RiskPlot(150,200),
+    land: new RiskPlot(200, 300), distance: new RiskPlot(15, 100, true)}
+// ******** timeControl( second for warning, percentage for warning, threshold) *********
+var timeControl = {fatigue: new TimeControl(10, 0.7, 50), warning: new TimeControl(1, 0.9, 15, true)}
+var audioPlay = {fatigueF: new AudioPlay('sound/fatigue_f.wav'), fatigueM: new AudioPlay('sound/fatigue_m.wav'), 
+    warningF: new AudioPlay('sound/warning_f.wav'), warningM: new AudioPlay('sound/warning_m.wav')}
+var dataDB = {fatigue: new TimeControl(10, 0.7, 50)};
 // *******realtime start********
 var storeNum = [];
 var num = 0;
@@ -12,22 +20,16 @@ var grepVideoWidth = 400;
 var canvas = document.createElement('canvas')
 var carVideo = document.getElementById('videoX');
 const VIDEO_DEFAULT_SIZE = { width: 852, height: 480 };
-
+const VELOCITY_TOL = 40;
+var token;
 $(document).ready(function () {
-    // var uMovBtnEle = document.getElementById('uMovBtn');
-    // if (uMovBtnEle != null && uMovBtnEle.value == '') {
-    //     uMovBtnEle.onclick = uImgBtnAction;
-    //     var storeData = document.getElementById('storeData').value;
-    //     storeData = JSON.parse(storeData);
-    //     placeResultValue(storeData);
-    // }
-    // Method of uploading file.
-    // const fileUploader = document.querySelector('#uImgForm');
-    // formData = new FormData();
-    // fileUploader.addEventListener('change', (e) => {
-    //     console.log("fileUploader: ",e.target.files); // get file object
-    //     formData.append("myfile", e.target.files[0])
-    // });
+    var name = localStorage.getItem("yourName");
+    token = localStorage.getItem("token");
+    document.getElementById("token").value = token;
+    if (name==null)
+        window.location.href = `./`;
+    nameTag.innerText = `Hi ${name}!`;
+    logoutP.onclick = logoutAction;
     try {
         // *******video start********
         console.log('video start')
@@ -118,30 +120,6 @@ function sCamBtnAction() {
         }, 1000);
     })
 }
-// function uImgBtnAction(event) {  
-// function uImgBtnAction() {  
-//     console.log('uImgBtnAction(event)')  
-//     var postUrl; 
-//     // if (event.srcElement.id=='uMovBtn') {
-//     postUrl = "/uMov/upload_file"; // Need confirm with wolf
-//     // }
-//     let photo = document.getElementById("image-file").files[0];
-//     let formData = new FormData();
-//     formData.append("myfile", photo);  // The 1st param should be the same as input name.
-//     $.ajax({
-//         type: "post",
-//         url: postUrl,
-//         data: formData,
-//         processData: false,  // This's for invocation error
-//         contentType : false,
-//         enctype: "multipart/form-data"
-//     }).done(response => {
-//         document.getElementById('displayResponse').innerText = response;
-//         document.getElementById("image-file").value = "";
-//         console.log(response);
-//     })
-// }
-
 function serializeToJSON(data) {
     var values = {};
     for (index in data) {
@@ -152,16 +130,8 @@ function serializeToJSON(data) {
 }
 
 function sendFrameInterval() {
-    // webCamSnap(num);
-    // num+=1;
-    // var intervalID = setInterval(() => {
     webCamSnap(num);
     num += 1
-    // if (num>200) { 
-    //     num = -1; //end python
-    //     // clearInterval(intervalID);
-    // }
-    // }, 50);
 }
 function webCamSnap(runNo) {
     var beginTime = new Date().getTime();
@@ -169,23 +139,10 @@ function webCamSnap(runNo) {
     Webcam.snap(function (snappedImage) {
         console.log("snappedImage", snappedImage);
         var imageString = snappedImage.split(",")[1];
-        // console.log("imageString",imageString);
         var data = { num: runNo, time: beginTime, imageString: imageString };
         $.post("/realtime", data, function (receive) {
-            // var webTime = receive.time[0];
-            // var nodeTime = receive.time[1];
-            // var pyTime = receive.time[2];
             realImg.src = `data:image/jpeg;base64,${receive.imageString}`;
             console.log('receive.imageString', receive.imageString)
-            // var resInt = parseInt(receive.result);
-            // var webToNodeTime = nodeTime - webTime;
-            // var nodeToPyTime = pyTime - nodeTime;
-            // var pyToWebTime = new Date().getTime() - pyTime;
-            // var outStr = "Send"+receive.result + " web to node time: "+webToNodeTime;
-            // outStr += ` node to py time: ${nodeToPyTime}`;
-            // outStr += ` py to web time: ${pyToWebTime}`;
-            // displayText.innerText = outStr;
-
             sendFrameInterval();
         });
     });  // End of Webcam.snap
@@ -202,28 +159,13 @@ function startCam() {
         id: 'videoY'
     });
     Webcam.attach('#webcamDiv');
-    setTimeout(function(){ video_face(videoY, 0)},5000);
+    setTimeout(function(){ 
+        videoY.style.height = "150px";
+        video_face(videoY, 0)
+    },5000);
    
 }
 
-// function getCarView(carVideo) {
-//     var canvas = document.createElement('canvas');
-//     // console.log('carVideo.width',carVideo.videoWidth,carVideo.videoHeight)
-//     var ratio = carVideo.videoWidth / carVideo.videoHeight; // original viedo width
-//     if (carVideo.width == 0)
-//         carVideo.width = carVideo.videoWidth;
-//     canvas.width = carVideo.width;//carVideo video id='videoX'
-//     canvas.height = carVideo.width / ratio;
-//     var ctx = canvas.getContext('2d');
-//     //draw image to canvas. scale to target dimensions
-//     // console.log("canvas.width, canvas.height",canvas.width, canvas.height);
-//     ctx.drawImage(carVideo, 0, 0, canvas.width, canvas.height);
-//     var dataURI = canvas.toDataURL('image/jpeg');
-//     dataURI = dataURI.split(",")[1];
-//     // displayCarImg.src = dataURI;
-//     // console.log("dataURI: ",dataURI); 
-//     return dataURI;
-// }
 function video_driver(carVideo, runNo) {
     var canvas = document.createElement('canvas');
     // console.log('carVideo.width',carVideo.videoWidth,carVideo.videoHeight)
@@ -262,11 +204,11 @@ function video_face(faceVideo, runNo) {
     ctx.drawImage(faceVideo, 0, 0, canvas.width, canvas.height);
     var dataURI = canvas.toDataURL('image/jpeg');
     dataURI = dataURI.split(",")[1];
-    var data = { num: runNo, imageString: dataURI };
+    var data = { num: runNo, imageString: dataURI, token: token };
     $.post("/video_face", data, function (receiveY) {
         var realTimeDriver_dataJson = receiveY.realTimeDriver_dataJson
         // console.log('realTimeDriver_dataJson',realTimeDriver_dataJson)
-        realImg_driver.src = 'data:image/jpeg;base64,'+realTimeDriver_dataJson.image
+        // realImg_driver.src = 'data:image/jpeg;base64,'+realTimeDriver_dataJson.image // not work
 
         var landRisk = "high";
         if (parseFloat(realTimeDriver_dataJson.landShift) < 0.6) {
@@ -274,10 +216,14 @@ function video_face(faceVideo, runNo) {
         }
         var dataObj = {speed: {score: realTimeDriver_dataJson.velocity, risk: "low"}, land: {score: parseInt(realTimeDriver_dataJson.landShift*100), risk:landRisk}};
         placeResultValue(dataObj);
-
+        // console.log("realTimeDriver_dataJson.distList:",realTimeDriver_dataJson.distList)
         var distances = JSON.parse(realTimeDriver_dataJson.distList);
-        distances = distances.filter(item => !(item < 0));
+        // distances = distances.filter(item => !(item < 0));
+        distances = distances.filter(item => !(item < 1));
         var minDist = Math.min.apply(Math,distances)
+        timeControl.warning.addScore(minDist);
+        if (timeControl.warning.judgeRisk()&&realTimeDriver_dataJson.velocity>VELOCITY_TOL)
+            playAlarmAudio(1);
         var distRisk = (minDist < 10)? "high" : "low";
         dataObj = {distance: {score: minDist, risk: distRisk}};
         placeResultValue(dataObj);
@@ -285,9 +231,23 @@ function video_face(faceVideo, runNo) {
         if (playVideo)
             video_face(faceVideo, runNo + 1)
         // console.log(receiveY.score)
+        timeControl.fatigue.addScore(receiveY.score*100);
+        if (timeControl.fatigue.judgeRisk())
+            playAlarmAudio(0);
         var fatRisk = (receiveY.score<0.5)? 'low' : 'high';
         var dataObj = {fatigue: {score: parseInt(receiveY.score*100), risk: fatRisk}};
         placeResultValue(dataObj);
+        // data collection db
+        console.log("data collection db");
+        dataDB.fatigue.addScore(receiveY.score*100);
+        if (dataDB.fatigue.judgeSendDB()) {
+            var dbCollectData = JSON.stringify(dataDB.fatigue.collectData());
+            var dbData = {data: dbCollectData, token: token};
+            console.log("to dbData:", dbData);
+            $.post("/login/dbCollectData", dbData, function(receive) {
+                console.log("[DB data sent]:"+ receive);
+            });
+        }
     });
 }
 function drawPolygon(thisCanvas, landPts, colorStr) {
@@ -415,5 +375,40 @@ function carViewSnap(runNo) {
         placeResultValue(dataObj);
         var dataURI = canvas.toDataURL(`image/jpeg`);
         displayCarView.src = dataURI;
+    });
+}
+
+function playAlarmAudio(type) {
+    var randomNum = Math.floor(Math.random()*2);
+    // if (type==0  && audioPlayFlag) { // fatigue
+    if (type==0) { // fatigue
+        // audioPlayFlag = false;
+        if (randomNum==0) {
+            // play(yodelBufferF);
+            audioPlay.fatigueF.play();
+        }
+        else {
+            // play(yodelBufferF);
+            audioPlay.fatigueM.play();
+        }
+    // } else if (type==1 && audioPlayFlag) { // warning
+    } else if (type==1) { // warning
+        // audioPlayFlag = false;
+        if (randomNum==0) {
+            // play(yodelBuffer);
+            audioPlay.warningF.play();
+        }
+        else {
+            // play(yodelBuffer);
+            audioPlay.warningM.play();
+        }
+    }
+}
+function logoutAction() {
+    localStorage.removeItem("yourName");
+    localStorage.removeItem("token");
+    $.post("/login/logout", {token: token}, function(receive) {
+        console.log("Logout");
+        window.location.href = `./`;
     });
 }

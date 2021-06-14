@@ -11,20 +11,20 @@ class RiskPlot  {
         this.timeSlice = 0;
         this.RISK_TOLERANCE = RISK_TOLERANCE;
         this.reverse = false;
-        if (reverse!=undefined) {
+        this.MAX = 100;
+        if (reverse!=undefined) 
             this.reverse = reverse;
-        }
         if (tol!=undefined) 
             this.RISK_TOLERANCE = tol;
-        this.MAX = 100;
         if (max!=undefined)
             this.MAX = max;
+        if (this.reverse) 
+            this.RISK_TOLERANCE = this.MAX - this.RISK_TOLERANCE;
     }
     setBoard(inScore,text , reSize=50) {
         var outColor, inColor;
         if (this.reverse) {
             inScore = this.MAX - inScore;
-            this.RISK_TOLERANCE = this.MAX - this.RISK_TOLERANCE;
         }
         if (parseInt(inScore) >= this.RISK_TOLERANCE) {
             outColor = HIGH_RISK_COLOR[1];

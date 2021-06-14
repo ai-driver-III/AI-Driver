@@ -123,7 +123,8 @@
     </div>
     <% dataS = JSON.stringify(data) %>
     <% console.log("[LOG] Render video page") %>
-    <form action=""><input id="storeData" type="hidden" value="<%= dataS %>"></form>
+    <form action=""><input id="storeData" type="hidden" value="<%= dataS %>">
+        <input type="hidden" id="token" value="<%= token %>"></form>
 </div>
 
 <script type="module" src="./js/pageAction.js"></script>

@@ -10,6 +10,7 @@ class runWithFPS():
         return sum(self.FPS)/len(self.FPS)
     def deltaTime(self, nameSting=""):
         logging.debug(f"{nameSting}: "+ str(time.time() - self.begin))
+        return time.time() - self.begin
     def getTime(self):
         return time.time()-self.begin
     def end(self, frame):
